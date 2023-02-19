@@ -1,12 +1,11 @@
 <script setup lang="ts">
+  import { ref, computed, watchEffect, watch } from 'vue';
+  
+  import type { ISlideProps, IClassSettings } from './Slide.interfaces';
   import { SlideTypeEnum } from './Slide.enums';
-import type { ISlideProps, IClassSettings } from './Slide.interfaces';
-import { ref, computed, watchEffect, watch } from 'vue';
-
 
   // non viene letta da VUE
   // const { id, url } = defineProps<ISlideProps>();
-
   const { id, url } = defineProps<{
     id: string;
     url: string;

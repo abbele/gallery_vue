@@ -1,6 +1,9 @@
 import { API_IMG, API_QUOTE } from "@/constants/api.constants";
+
 import { ApiService } from "@/services/api.service";
+
 import type { IImgResponse, IQuotesResponse } from "./HomeView.interfaces";
+
 import { ImgListModel } from "./models/ImgList.model";
 import { QuotesModel } from "./models/Quotes.model";
 

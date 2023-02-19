@@ -10,5 +10,5 @@ export class QuotesModel {
   public quotesForCarousel = () => this._quotes.map((quote) => ({
     quote: quote.quote,
     category: quote.category
-  })).slice(0, 5)
+  }))
 }
