@@ -10,7 +10,7 @@
 
   import ArrowVue from '../icons/Arrow.vue';
 
-  import { getClassesSlide, getClassesProgressItem } from './Carousel.utils.ts';
+  import { getClassesSlide, getClassesProgressItem } from './Carousel.utils';
 
   // TODO: non viene letta da VUE
   // const { slides } = defineProps<ICarouselProps>()
