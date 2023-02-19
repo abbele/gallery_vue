@@ -7,10 +7,9 @@ import { ref, computed, watchEffect, watch } from 'vue';
   // non viene letta da VUE
   // const { id, url } = defineProps<ISlideProps>();
 
-  const { id, url, current } = defineProps<{
+  const { id, url } = defineProps<{
     id: string;
     url: string;
-    current: number
   }>();
 
 </script>
