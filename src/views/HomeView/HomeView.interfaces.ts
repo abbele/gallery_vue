@@ -6,3 +6,9 @@ export interface IImgResponse {
   url: string;
   width: number;
 }
+
+export interface IQuotesResponse {
+  author: string;
+  category: string
+  quote: string;
+}

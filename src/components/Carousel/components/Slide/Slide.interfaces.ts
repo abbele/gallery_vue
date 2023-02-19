@@ -1,10 +1,14 @@
+import type { SlideTypeEnum } from "./Slide.enums";
+
 export interface ISlideProps extends ISlide {
-  classSettings: IClassSettings;
 }
 
 export interface ISlide {
+  category: string;
   id: string;
+  quote: string;
   url: string;
+  type?: SlideTypeEnum
 }
 
 export interface IClassSettings {
