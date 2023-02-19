@@ -1,9 +1,13 @@
 <script setup lang="ts">
   import CarouselVue from '@/components/Carousel/Carousel.vue';
   import { ref, watchEffect } from 'vue'
+  import { useRoute } from 'vue-router';
   import { HomeViewService } from './HomeView.service'
 
+  const route = useRoute()
+
   const img_list = ref<{ id: string, url: string}[]>([])
+  const currentSlide = ref<number>((+route.params.id || 0))
 
   watchEffect(async () => {
     const homeViewModel = await HomeViewService.getImgs()
@@ -15,7 +19,7 @@
 <template>
   <div class="home-view">
     <h1 class="home-view__title">THE GALLERY NAME</h1>
-    <CarouselVue :slides="img_list" />
+    <CarouselVue :slides="img_list" :currentSlide="currentSlide"/>
   </div>
 </template>
 
