@@ -4,7 +4,7 @@ export const getClassesSlide = (index: number, current: number) => {
   const isNext = index - 1 === current
 
   return {
-    'carousel__slide': true,
+    carousel__slide: true,
     'carousel__slide--current': isCurrent,
     'carousel__slide--previous': isPrevious,
     'carousel__slide--next': isNext,
@@ -13,5 +13,5 @@ export const getClassesSlide = (index: number, current: number) => {
 
 export const getClassesProgressItem = (index: number, current: number) => ({
   'carousel__progress-item': true,
-  'carousel__progress-item--selected': index === current
+  'carousel__progress-item--selected': index === current,
 })

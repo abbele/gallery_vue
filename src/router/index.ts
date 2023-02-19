@@ -7,14 +7,14 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeViewVue
+      component: HomeViewVue,
     },
     {
       path: '/:id',
       name: 'home/id',
-      component: HomeViewVue
+      component: HomeViewVue,
     },
-  ]
+  ],
 })
 
 export default router
