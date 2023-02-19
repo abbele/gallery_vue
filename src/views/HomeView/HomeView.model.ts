@@ -9,6 +9,6 @@ export class HomeViewModel {
 
   public imgsForCarousel = () => this._imgs.map((img) => ({
     id: img.id,
-    url: img.url
+    url: img.download_url
   }))
 }

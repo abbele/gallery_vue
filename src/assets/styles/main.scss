@@ -1,0 +1,19 @@
+//TODO: gestire reset
+@import 'reset-css/sass/_reset.scss';
+@import './typography';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+html {
+  font-family: $font-family;
+}
