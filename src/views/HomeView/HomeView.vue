@@ -13,7 +13,6 @@ import CarouselVue from '@/components/Carousel/Carousel.vue';
   const img_list = ref<ISlide[]>([])
   // const currentSlide = ref<number>((+route.params.id || 0))
   const currentSlide = ref<number>(2)
-  const current = reactive(currentSlide)
 
   // differenza tra watch e watchEffect
   watchEffect(async () => {
@@ -34,16 +33,15 @@ import CarouselVue from '@/components/Carousel/Carousel.vue';
   })
 
   const handleClickPrevious = (direction?: CarouselDirectionEnum) => {
-
     if (direction === CarouselDirectionEnum.PREVIOUS) {
-      if (current.value === 0) return
+      if (currentSlide.value === 0) return
 
-      current.value -= 1
+      currentSlide.value -= 1
       return
     }
 
-    if (current.value === img_list.value.length - 1) return
-    current.value += 1
+    if (currentSlide.value === img_list.value.length - 1) return
+    currentSlide.value += 1
   }
 </script>
 
@@ -52,7 +50,7 @@ import CarouselVue from '@/components/Carousel/Carousel.vue';
     <h1 class="home-view__title">THE GALLERY NAME</h1>
     <CarouselVue 
       :slides="img_list" 
-      :currentSlide="current" 
+      :currentSlide="currentSlide" 
       v-if="isLoaded" 
       @go-previous="handleClickPrevious" 
       @go-next="handleClickPrevious"
