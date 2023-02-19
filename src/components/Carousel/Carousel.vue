@@ -88,7 +88,7 @@ import { SlideTypeEnum } from './components/Slide/Slide.enums';
     gap: 30px;
 
     @include media($from: lg) {
-      grid-template-rows: 45px auto minmax(0, 1fr);
+      grid-template-rows: minmax(0, 4fr) auto minmax(0, 1fr);
       gap: 36px;
     }
 
