@@ -8,17 +8,16 @@
   // non viene letta da VUE
   // const { slides } = defineProps<ICarouselProps>()
 
-  const { slides } = defineProps<{
-    slides: ISlide[]
+  const { slides, currentSlide } = defineProps<{
+    slides: ISlide[],
+    currentSlide: number
   }>()
-
-  const currentSlide = ref(1)
 
   // TODO: refactor
   const getClassSettings = (index: number) => ({
-    current: index === currentSlide.value,
-    previous: index - 1 === currentSlide.value,
-    next: index + 1 === currentSlide.value
+    current: index === currentSlide,
+    previous: index - 1 === currentSlide,
+    next: index + 1 === currentSlide
   })
 </script>
 
