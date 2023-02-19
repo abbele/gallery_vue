@@ -14,11 +14,9 @@
   const route = useRoute()
 
   const isLoaded = ref<boolean>(false)
-  const img_list = ref<ISlide[]>([])
-  // const currentSlide = ref<number>((+route.params.id || 0))
+  const slides = ref<ISlide[]>([])
   const currentSlide = ref<number>(2)
 
-  // differenza tra watch e watchEffect
   watchEffect(async () => {
     Promise.all([
       await HomeViewService.getImgs(`${SLIDES_LENGTH}`),
@@ -26,7 +24,7 @@
     ]).then(([imgsModel, quotesModel]) => {
       const { quotesForCarousel: quotes } = quotesModel;
 
-      img_list.value = imgsModel.imgsForCarousel().map((imgs, index) => ({
+      slides.value = imgsModel.imgsForCarousel().map((imgs, index) => ({
         id: imgs.id,
         url: imgs.url,
         category: quotes()[index].category,
@@ -38,16 +36,18 @@
 
   const handleChangeSlide = (direction?: CarouselDirectionEnum) => {
     const isPrevious = direction === CarouselDirectionEnum.PREVIOUS;
-    const lastSlide = img_list.value.length - 1;
+    const lastSlide = slides.value.length - 1;
     const isFirstSlide = currentSlide.value === 0;
     const isLastSlide = currentSlide.value === lastSlide;
 
-    if ((isPrevious && isFirstSlide) || isLastSlide) return;
+    if (isPrevious && isFirstSlide) return;
 
     if (isPrevious) {
       currentSlide.value -= 1;
       return;
     }
+
+    if (isLastSlide) return;
     
     currentSlide.value += 1
   }
@@ -59,7 +59,7 @@
     <CarouselVue 
       v-if="isLoaded" 
       :currentSlide="currentSlide" 
-      :slides="img_list" 
+      :slides="slides" 
       @go-previous="handleChangeSlide" 
       @go-next="handleChangeSlide"
     />
