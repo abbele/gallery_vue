@@ -1,18 +1,22 @@
 <script setup lang="ts">
+  import { ref } from 'vue';
+
+  import { CarouselDirectionEnum } from './Carousel.enums';
   import type { ICarouselProps } from './Carousel.interfaces';
+
   import type { ISlide } from './components/Slide/Slide.interfaces';
+  import { SlideTypeEnum } from './components/Slide/Slide.enums';
   import SlideVue from './components/Slide/Slide.vue';
-  import { ref, computed, watchEffect, watch, reactive } from 'vue';
+
   import ArrowVue from '../icons/Arrow.vue';
-import { CarouselDirectionEnum } from './Carousel.enums';
-import { SlideTypeEnum } from './components/Slide/Slide.enums';
 
-  // non viene letta da VUE
+  import { getClassesSlide, getClassesProgressItem } from './Carousel.utils.ts';
+
+  // TODO: non viene letta da VUE
   // const { slides } = defineProps<ICarouselProps>()
-
   const { slides, currentSlide } = defineProps<{
-    slides: ISlide[],
-    currentSlide: number
+    slides: ISlide[];
+    currentSlide: number;
   }>()
 
   const emit = defineEmits<{
@@ -21,25 +25,6 @@ import { SlideTypeEnum } from './components/Slide/Slide.enums';
   }>()
 
   const slidesLength = ref(slides.length)
-
-  // TODO: refactor
-  const getClassesSlide = (index: number, current: number) => {
-    const isCurrent = index === current
-    const isPrevious = index + 1 === current
-    const isNext = index - 1 === current
-
-    return {
-      'carousel__slide': true,
-      'carousel__slide--current': isCurrent,
-      'carousel__slide--previous': isPrevious,
-      'carousel__slide--next': isNext,
-    }
-  }
-
-  const getClassesProgressItem = (index: number, current: number) => ({
-    'carousel__progress-item': true,
-    'carousel__progress-item--selected': index === current
-  })
   
 </script>
 
@@ -84,12 +69,12 @@ import { SlideTypeEnum } from './components/Slide/Slide.enums';
     width: 100%;
     overflow: hidden;
     display: grid;
-    grid-template-rows: 205px auto auto minmax(0, 1fr);
-    gap: 30px;
+    grid-template-rows: $height-slide-small auto auto minmax(0, 1fr);
+    gap: $spacer-32;
 
     @include media($from: lg) {
       grid-template-rows: minmax(0, 4fr) auto minmax(0, 1fr);
-      gap: 36px;
+      gap: $spacer-40;
     }
 
     &__list {
@@ -217,7 +202,7 @@ import { SlideTypeEnum } from './components/Slide/Slide.enums';
 
       &--previous {
         @include media($from: lg) {
-          left: 64px;
+          left: $spacer-64;
         }
       }
 
@@ -227,7 +212,7 @@ import { SlideTypeEnum } from './components/Slide/Slide.enums';
         }
 
         @include media($from: lg) {
-          right: 64px;
+          right: $spacer-64;
         }
       }
     }

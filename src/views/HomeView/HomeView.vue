@@ -1,11 +1,15 @@
 <script setup lang="ts">
-  import { CarouselDirectionEnum } from '@/components/Carousel/Carousel.enums';
-import CarouselVue from '@/components/Carousel/Carousel.vue';
-  import type { ISlide } from '@/components/Carousel/components/Slide/Slide.interfaces';
-  import { ref, watchEffect, computed, reactive } from 'vue'
+  import { ref, watchEffect, computed, reactive } from 'vue';
   import { useRoute } from 'vue-router';
+
+  import CarouselVue from '@/components/Carousel/Carousel.vue';
+  import { CarouselDirectionEnum } from '@/components/Carousel/Carousel.enums';
+  
+  import type { ISlide } from '@/components/Carousel/components/Slide/Slide.interfaces';
+
+  import { HomeViewService } from './HomeView.service';
+
   import { SLIDES_LENGTH } from './HomeView.constants';
-  import { HomeViewService } from './HomeView.service'
 
   const route = useRoute()
 
@@ -32,15 +36,19 @@ import CarouselVue from '@/components/Carousel/Carousel.vue';
     })
   })
 
-  const handleClickPrevious = (direction?: CarouselDirectionEnum) => {
-    if (direction === CarouselDirectionEnum.PREVIOUS) {
-      if (currentSlide.value === 0) return
+  const handleChangeSlide = (direction?: CarouselDirectionEnum) => {
+    const isPrevious = direction === CarouselDirectionEnum.PREVIOUS;
+    const lastSlide = img_list.value.length - 1;
+    const isFirstSlide = currentSlide.value === 0;
+    const isLastSlide = currentSlide.value === lastSlide;
 
-      currentSlide.value -= 1
-      return
+    if ((isPrevious && isFirstSlide) || isLastSlide) return;
+
+    if (isPrevious) {
+      currentSlide.value -= 1;
+      return;
     }
-
-    if (currentSlide.value === img_list.value.length - 1) return
+    
     currentSlide.value += 1
   }
 </script>
@@ -49,11 +57,11 @@ import CarouselVue from '@/components/Carousel/Carousel.vue';
   <div class="home-view">
     <h1 class="home-view__title">THE GALLERY NAME</h1>
     <CarouselVue 
-      :slides="img_list" 
-      :currentSlide="currentSlide" 
       v-if="isLoaded" 
-      @go-previous="handleClickPrevious" 
-      @go-next="handleClickPrevious"
+      :currentSlide="currentSlide" 
+      :slides="img_list" 
+      @go-previous="handleChangeSlide" 
+      @go-next="handleChangeSlide"
     />
     <div v-else>Loading...</div>
   </div>
@@ -66,7 +74,7 @@ import CarouselVue from '@/components/Carousel/Carousel.vue';
   .home-view {
     display: grid;
     grid-template-rows: auto 1fr;
-    gap: 56px;
+    gap: $spacer-56;
     place-items: center;
     overflow: hidden;
     height: 100%;
