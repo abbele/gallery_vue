@@ -1,0 +1,57 @@
+@import './breakpoints';
+
+$font-family: Ortica;
+
+@font-face {
+  font-family: $font-family;
+  src: url('../font/Ortica-Light.otf') format('opentype');
+}
+
+@font-face {
+  font-family: $font-family;
+  font-weight: bold;
+  src: url('../font/Ortica-Bold.otf') format('opentype');
+}
+
+@mixin common-typography($is-bold: false, $color: null) {
+  @if ($is-bold) {
+    font-weight: bold;
+  }
+
+  @if ($color) {
+    color: $color;
+  }
+}
+
+// TODO: passare a rem
+@mixin title($is-bold: false, $color: null) {
+  @include common-typography($is-bold, $color);
+
+  font-size: 18px;
+
+  @include media($from: lg) {
+    font-size: 32px;
+  }
+}
+
+@mixin body($is-bold: false, $color: null) {
+  @include common-typography($is-bold, $color);
+
+  font-size: 12px;
+  letter-spacing: 0.2;
+
+  @include media($from: lg) {
+    font-size: 16px;
+  }
+}
+
+@mixin caption($is-bold: false, $color: null) {
+  @include common-typography($is-bold, $color);
+
+  font-size: 12px;
+  letter-spacing: 0.2;
+
+  @include media ($from: lg) {
+    font-size: 12px;
+  }
+}
