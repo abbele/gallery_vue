@@ -1,1 +1,1 @@
-export const SLIDES_LENGTH = 10;
+export const SLIDES_LENGTH = 10
