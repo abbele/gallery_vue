@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import gsap from 'gsap'
 
@@ -30,6 +30,19 @@ const emit = defineEmits<{
 const slidesLength = ref(props.slides.length)
 const slidesRef = ref<Element[]>([])
 const isSliderInProgress = ref(false)
+
+const handleScroll = (e: WheelEvent) => {
+  if (isSliderInProgress.value) return
+
+  const goNext = e.deltaX > 0 || e.deltaY > 0
+  const direction = goNext ? CarouselDirectionEnum.NEXT : CarouselDirectionEnum.PREVIOUS
+
+  handleChangeSlide(direction)
+}
+
+onMounted(() => {
+  window.addEventListener('wheel', handleScroll)
+})
 
 const emitEvents = (direction: CarouselDirectionEnum) => {
   // TODO: refactor
@@ -118,11 +131,16 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
     gsap.set(prevSlide, { clearProps: true })
 
     tl.kill()
+    window.removeEventListener('wheel', handleScroll)
     emitEvents(direction)
     isSliderInProgress.value = false
+
+    // TODO: fix remove listener
+    setTimeout(() => {
+      window.addEventListener('wheel', handleScroll)
+    }, 700)
   })
 }
-
 </script>
 
 <template>
@@ -146,12 +164,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
         ></div>
       </div>
     </div>
-    <div
-      class="carousel__text"
-      v-for="(slide, index) in props.slides"
-      :key="slide.id"
-      v-show="index === currentSlide"
-    >
+    <div class="carousel__text" v-for="(slide, index) in props.slides" :key="slide.id" v-show="index === currentSlide">
       <div class="carousel__tag">{{ slide.category }}</div>
       <div class="carousel__description">{{ slide.quote }}</div>
     </div>
@@ -280,7 +293,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
       width: 70%;
     }
   }
-  
+
   &__actions {
     display: flex;
     justify-content: center;
