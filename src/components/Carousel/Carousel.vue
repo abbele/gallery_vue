@@ -2,6 +2,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import gsap from 'gsap'
+
 import { CarouselDirectionEnum } from './Carousel.enums'
 // import type { ICarouselProps } from './Carousel.interfaces'
 
@@ -11,6 +13,7 @@ import SlideVue from './components/Slide/Slide.vue'
 import ArrowVue from '../icons/Arrow.vue'
 
 import { getClassesSlide, getClassesProgressItem } from './Carousel.utils'
+import { isMobile } from '../../utils'
 
 // TODO: non viene letta da VUE
 // const { slides } = defineProps<ICarouselProps>()
@@ -19,21 +22,117 @@ const props = defineProps<{
   currentSlide: number
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   goPrevious: (direction?: CarouselDirectionEnum) => void
   goNext: (direction?: CarouselDirectionEnum) => void
 }>()
 
 const slidesLength = ref(props.slides.length)
+const slidesRef = ref<Element[]>([])
+const isSliderInProgress = ref(false)
+
+const emitEvents = (direction: CarouselDirectionEnum) => {
+  // TODO: refactor
+  if (direction === CarouselDirectionEnum.PREVIOUS) {
+    //@ts-ignore
+    emit('goPrevious', CarouselDirectionEnum.PREVIOUS)
+  }
+
+  if (direction === CarouselDirectionEnum.NEXT) {
+    //@ts-ignore
+    emit('goNext', CarouselDirectionEnum.NEXT)
+  }
+}
+
+const handleChangeSlide = (direction: CarouselDirectionEnum) => {
+  if (isMobile()) {
+    emitEvents(direction)
+    return
+  }
+
+  isSliderInProgress.value = true
+
+  // TODO: centralizzare funzioni
+  const dir = direction === CarouselDirectionEnum.NEXT ? 1 : -1
+  const nextSlide = slidesRef.value[props.currentSlide - dir]
+  const currSlide = slidesRef.value[props.currentSlide]
+  const prevSlide = slidesRef.value[props.currentSlide + dir]
+  const getPrevOpt = gsap.getProperty(prevSlide)
+  const getCurrOpt = gsap.getProperty(currSlide)
+  const magicalNumber = 13.5 // Mi aspettavo fosse la differenza di percentuale del css 35
+
+  const tl = gsap.timeline()
+
+  const rightSlide = currSlide.getBoundingClientRect().right
+  // TODO: controllare width
+  const widthSlide = currSlide.getBoundingClientRect().right
+  const heightSlide = currSlide.getBoundingClientRect().height
+
+  const nextOpt =
+    direction === CarouselDirectionEnum.NEXT
+      ? { x: -getPrevOpt('x') }
+      : {
+          x: rightSlide + widthSlide / 7.5,
+          y: +getCurrOpt('y') - heightSlide / 2,
+          rotation: 0,
+          opacity: 1,
+        }
+
+  const currOpt =
+    direction === CarouselDirectionEnum.NEXT
+      ? {
+          x: -rightSlide + (widthSlide * magicalNumber) / 100,
+          y: -getPrevOpt('y') + heightSlide / 2,
+          rotation: -getPrevOpt('rotation'),
+          opacity: 0.2,
+        }
+      : {
+          x: -(-rightSlide + (widthSlide * magicalNumber) / 100),
+          y: -getPrevOpt('y') + heightSlide / 2,
+          rotation: -getPrevOpt('rotation'),
+          opacity: 0.2,
+        }
+
+  const prevOpt =
+    direction === CarouselDirectionEnum.NEXT
+      ? {
+          x: -rightSlide + widthSlide / 7.5,
+          y: +getCurrOpt('y') - heightSlide / 2,
+          rotation: 0,
+          opacity: 1,
+        }
+      : {
+          x: rightSlide + widthSlide / 5,
+          y: +getCurrOpt('y') - heightSlide / 2,
+          rotation: 0,
+          opacity: 1,
+        }
+
+  tl.to(nextSlide, nextOpt, 0)
+  tl.to(currSlide, currOpt, 0)
+  tl.to(prevSlide, prevOpt, 0)
+
+  tl.then(() => {
+    gsap.set(currSlide, { clearProps: true })
+    gsap.set(nextSlide, { clearProps: true })
+    gsap.set(prevSlide, { clearProps: true })
+
+    tl.kill()
+    emitEvents(direction)
+    isSliderInProgress.value = false
+  })
+}
+
 </script>
 
 <template>
-  <section class="carousel">
+  <section ref="carousel" class="carousel">
     <ul class="carousel__list">
       <li
         v-for="(slide, index) in props.slides"
         :key="slide.id"
         :class="getClassesSlide(index, currentSlide)"
+        :ref="(_ref) => { slidesRef.push(_ref as Element) }"
       >
         <SlideVue :id="slide.id" :url="slide.url" />
       </li>
@@ -59,13 +158,15 @@ const slidesLength = ref(props.slides.length)
     <div class="carousel__actions">
       <button
         class="carousel__button carousel__button--previous"
-        @click.prevent="$emit('goPrevious', CarouselDirectionEnum.PREVIOUS)"
+        @click.prevent="handleChangeSlide(CarouselDirectionEnum.PREVIOUS)"
+        :disabled="isSliderInProgress"
       >
         <ArrowVue />
       </button>
       <button
         class="carousel__button carousel__button--next"
-        @click.prevent="$emit('goNext', CarouselDirectionEnum.NEXT)"
+        @click.prevent="handleChangeSlide(CarouselDirectionEnum.NEXT)"
+        :disabled="isSliderInProgress"
       >
         <ArrowVue />
       </button>
@@ -179,7 +280,7 @@ const slidesLength = ref(props.slides.length)
       width: 70%;
     }
   }
-
+  
   &__actions {
     display: flex;
     justify-content: center;
@@ -208,6 +309,10 @@ const slidesLength = ref(props.slides.length)
       height: calc(100% + 6px);
       border-radius: 50%;
       border: 1px solid $dark;
+    }
+
+    &:disabled {
+      opacity: 0.2;
     }
 
     svg {
