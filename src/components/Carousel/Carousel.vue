@@ -64,6 +64,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   const tl = gsap.timeline()
 
   const rightSlide = currSlide.getBoundingClientRect().right
+  // TODO: controllare width
   const widthSlide = currSlide.getBoundingClientRect().right
   const heightSlide = currSlide.getBoundingClientRect().height
 
