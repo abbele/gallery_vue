@@ -122,6 +122,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
     isSliderInProgress.value = false
   })
 }
+
 </script>
 
 <template>
@@ -279,7 +280,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
       width: 70%;
     }
   }
-
+  
   &__actions {
     display: flex;
     justify-content: center;
