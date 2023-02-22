@@ -4,7 +4,7 @@ export class ImgListModel {
   private _imgs: IImgResponse[] = []
 
   constructor(response: IImgResponse[]) {
-    this._imgs = response
+    this._imgs = response || []
   }
 
   public imgsForCarousel = () =>

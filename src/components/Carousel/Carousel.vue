@@ -23,16 +23,18 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  goPrevious: (direction?: CarouselDirectionEnum) => void
-  goNext: (direction?: CarouselDirectionEnum) => void
+  onChangeSlide: (index: number) => void
 }>()
 
 const slidesLength = ref(props.slides.length)
 const slidesRef = ref<Element[]>([])
 const isSliderInProgress = ref(false)
+const carouselList = ref()
 
+// TODO: fix first and last slide
 const handleScroll = (e: WheelEvent) => {
   if (isSliderInProgress.value) return
+  if (isMobile()) return
 
   const goNext = e.deltaX > 0 || e.deltaY > 0
   const direction = goNext ? CarouselDirectionEnum.NEXT : CarouselDirectionEnum.PREVIOUS
@@ -40,26 +42,54 @@ const handleScroll = (e: WheelEvent) => {
   handleChangeSlide(direction)
 }
 
+const handleScrollMobile = () => {
+  if (!isMobile()) return
+
+  clearTimeout(timer)
+  timer = setTimeout(() => {
+    slidesRef.value.forEach((slide, index) => {
+      if (index > props.slides.length - 1) return
+
+      // TODO: capire perchè 10
+      if (Math.abs(slide.getBoundingClientRect().left - carouselList.value.getBoundingClientRect().left) < 10) {
+        // goTo(index)
+        emitEvents(index)
+      }
+    })
+  }, 100)
+}
+
+let timer: ReturnType<typeof setTimeout>
+
 onMounted(() => {
   window.addEventListener('wheel', handleScroll)
+
+  carouselList.value.addEventListener('scroll', handleScrollMobile)
+
+  goTo(props.currentSlide)
 })
 
-const emitEvents = (direction: CarouselDirectionEnum) => {
-  // TODO: refactor
-  if (direction === CarouselDirectionEnum.PREVIOUS) {
-    //@ts-ignore
-    emit('goPrevious', CarouselDirectionEnum.PREVIOUS)
-  }
+const emitEvents = (index: number) => {
+  //@ts-ignore
+  emit('onChangeSlide', index)
+}
 
-  if (direction === CarouselDirectionEnum.NEXT) {
-    //@ts-ignore
-    emit('goNext', CarouselDirectionEnum.NEXT)
-  }
+const goTo = (index: number) => {
+  const selectedSlide = slidesRef.value[index]
+  const width = selectedSlide.getBoundingClientRect().width
+
+  // TODO: add gsap animation
+  carouselList.value.scrollLeft = width * index
 }
 
 const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   if (isMobile()) {
-    emitEvents(direction)
+    const selectedSlide = slidesRef.value[followingSlide(direction)]
+    const width = selectedSlide.getBoundingClientRect().width
+
+    // TODO: add gsap animation
+    carouselList.value.scrollLeft = width * followingSlide(direction)
+    emitEvents(followingSlide(direction))
     return
   }
 
@@ -72,21 +102,20 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   const prevSlide = slidesRef.value[props.currentSlide + dir]
   const getPrevOpt = gsap.getProperty(prevSlide)
   const getCurrOpt = gsap.getProperty(currSlide)
-  const magicalNumber = 13.5 // Mi aspettavo fosse la differenza di percentuale del css 35
+  const magicalNumber = 20 // Mi aspettavo fosse la differenza di percentuale del css 35
 
   const tl = gsap.timeline()
 
   const rightSlide = currSlide.getBoundingClientRect().right
   // TODO: controllare width
-  const widthSlide = currSlide.getBoundingClientRect().right
+  const widthSlide = currSlide.getBoundingClientRect().width
   const heightSlide = currSlide.getBoundingClientRect().height
 
   const nextOpt =
     direction === CarouselDirectionEnum.NEXT
       ? { x: -getPrevOpt('x') }
       : {
-          x: rightSlide + widthSlide / 7.5,
-          y: +getCurrOpt('y') - heightSlide / 2,
+          x: rightSlide + widthSlide,
           rotation: 0,
           opacity: 1,
         }
@@ -109,14 +138,20 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   const prevOpt =
     direction === CarouselDirectionEnum.NEXT
       ? {
-          x: -rightSlide + widthSlide / 7.5,
-          y: +getCurrOpt('y') - heightSlide / 2,
+          css: {
+            top: getCurrOpt('top'),
+            left: getCurrOpt('left'),
+            transform: getCurrOpt('transform'),
+          },
           rotation: 0,
           opacity: 1,
         }
       : {
-          x: rightSlide + widthSlide / 5,
-          y: +getCurrOpt('y') - heightSlide / 2,
+          css: {
+            top: getCurrOpt('top'),
+            left: getCurrOpt('left'),
+            transform: getCurrOpt('transform'),
+          },
           rotation: 0,
           opacity: 1,
         }
@@ -126,13 +161,13 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   tl.to(prevSlide, prevOpt, 0)
 
   tl.then(() => {
-    gsap.set(currSlide, { clearProps: true })
     gsap.set(nextSlide, { clearProps: true })
+    gsap.set(currSlide, { clearProps: true })
     gsap.set(prevSlide, { clearProps: true })
 
     tl.kill()
     window.removeEventListener('wheel', handleScroll)
-    emitEvents(direction)
+    emitEvents(followingSlide(direction))
     isSliderInProgress.value = false
 
     // TODO: fix remove listener
@@ -141,11 +176,28 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
     }, 700)
   })
 }
+
+const followingSlide = (direction?: CarouselDirectionEnum): number => {
+  const isPrevious = direction === CarouselDirectionEnum.PREVIOUS
+  const lastSlide = props.slides.length - 1
+  const isFirstSlide = props.currentSlide === 0
+  const isLastSlide = props.currentSlide === lastSlide
+
+  if (isPrevious && isFirstSlide) return props.currentSlide
+
+  if (isPrevious) {
+    return props.currentSlide - 1
+  }
+
+  if (isLastSlide) return props.currentSlide
+
+  return props.currentSlide + 1
+}
 </script>
 
 <template>
   <section ref="carousel" class="carousel">
-    <ul class="carousel__list">
+    <ul ref="carouselList" class="carousel__list">
       <li
         v-for="(slide, index) in props.slides"
         :key="slide.id"
@@ -164,22 +216,31 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
         ></div>
       </div>
     </div>
-    <div class="carousel__text" v-for="(slide, index) in props.slides" :key="slide.id" v-show="index === currentSlide">
-      <div class="carousel__tag">{{ slide.category }}</div>
-      <div class="carousel__description">{{ slide.quote }}</div>
+    <div class="carousel__info">
+      <TransitionGroup name="carousel__text-">
+        <div
+          class="carousel__text"
+          v-for="(slide, index) in props.slides"
+          :key="slide.id"
+          v-show="index === currentSlide"
+        >
+          <div class="carousel__tag">{{ slide.category }}</div>
+          <div class="carousel__description">{{ slide.quote }}</div>
+        </div>
+      </TransitionGroup>
     </div>
     <div class="carousel__actions">
       <button
         class="carousel__button carousel__button--previous"
         @click.prevent="handleChangeSlide(CarouselDirectionEnum.PREVIOUS)"
-        :disabled="isSliderInProgress"
+        :disabled="isSliderInProgress || props.currentSlide === 0"
       >
         <ArrowVue />
       </button>
       <button
         class="carousel__button carousel__button--next"
         @click.prevent="handleChangeSlide(CarouselDirectionEnum.NEXT)"
-        :disabled="isSliderInProgress"
+        :disabled="isSliderInProgress || props.currentSlide === props.slides.length - 1"
       >
         <ArrowVue />
       </button>
@@ -206,20 +267,35 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   }
 
   &__list {
+    display: flex;
     position: relative;
     height: 100%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+
+    @include media($from: lg) {
+      overflow: visible;
+    }
   }
 
   &__slide {
-    display: none;
-    position: absolute;
     height: 100%;
     width: 100%;
+    min-width: 100%;
+    scroll-snap-align: start;
 
+    @include media($from: lg) {
+      display: none;
+      position: absolute;
+      min-width: unset;
+    }
+
+    // TODO: add hover animation
     &--current {
-      display: block;
-
       @include media($from: lg) {
+        display: block;
         max-width: 50%;
         left: 50%;
         transform: translateX(-50%);
@@ -276,6 +352,18 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    // TODO: fix animation text
+    &--enter-active,
+    &--leave-active {
+      transition: all 0.5s ease;
+    }
+
+    &--enter-from,
+    &--leave-to {
+      opacity: 0;
+      transform: translateX(30px);
+    }
   }
 
   &__tag {
