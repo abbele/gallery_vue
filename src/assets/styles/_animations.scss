@@ -1,0 +1,35 @@
+@import './variables';
+
+@keyframes slide-from-right {
+	0% {
+		opacity: 0;
+		transform: translateX($animation-text-translate);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes slide-to-left {
+	0% {
+		opacity: 1;
+		transform: translateX(0);
+	}
+
+	100% {
+		opacity: 0;
+		transform: translateX(-$animation-text-translate);
+	}
+}
+
+@keyframes scale-from-out {
+	0% {
+		transform: scale(2);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}

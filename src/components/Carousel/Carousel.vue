@@ -12,7 +12,7 @@ import SlideVue from './components/Slide/Slide.vue'
 
 import ArrowVue from '../icons/Arrow.vue'
 
-import { getClassesSlide, getClassesProgressItem } from './Carousel.utils'
+import { getClassesSlide, getClassesProgressItem, followingSlide } from './Carousel.utils'
 import { isMobile } from '../../utils'
 
 // TODO: non viene letta da VUE
@@ -31,6 +31,13 @@ const slidesRef = ref<Element[]>([])
 const isSliderInProgress = ref(false)
 const carouselList = ref()
 
+onMounted(() => {
+  window.addEventListener('wheel', handleScroll)
+  carouselList.value.addEventListener('scroll', handleScrollMobile)
+
+  goTo(props.currentSlide)
+})
+
 // TODO: fix first and last slide
 const handleScroll = (e: WheelEvent) => {
   if (isSliderInProgress.value) return
@@ -42,6 +49,7 @@ const handleScroll = (e: WheelEvent) => {
   handleChangeSlide(direction)
 }
 
+let timer: ReturnType<typeof setTimeout>
 const handleScrollMobile = () => {
   if (!isMobile()) return
 
@@ -51,23 +59,12 @@ const handleScrollMobile = () => {
       if (index > props.slides.length - 1) return
 
       // TODO: capire perchè 10
-      if (Math.abs(slide.getBoundingClientRect().left - carouselList.value.getBoundingClientRect().left) < 10) {
-        // goTo(index)
+      if (Math.abs(slide.getBoundingClientRect().left - carouselList.value.getBoundingClientRect().left) < 1) {
         emitEvents(index)
       }
     })
   }, 100)
 }
-
-let timer: ReturnType<typeof setTimeout>
-
-onMounted(() => {
-  window.addEventListener('wheel', handleScroll)
-
-  carouselList.value.addEventListener('scroll', handleScrollMobile)
-
-  goTo(props.currentSlide)
-})
 
 const emitEvents = (index: number) => {
   //@ts-ignore
@@ -84,12 +81,12 @@ const goTo = (index: number) => {
 
 const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   if (isMobile()) {
-    const selectedSlide = slidesRef.value[followingSlide(direction)]
+    const selectedSlide = slidesRef.value[followingSlide(props.currentSlide, props.slides.length, direction)]
     const width = selectedSlide.getBoundingClientRect().width
 
     // TODO: add gsap animation
-    carouselList.value.scrollLeft = width * followingSlide(direction)
-    emitEvents(followingSlide(direction))
+    carouselList.value.scrollLeft = width * followingSlide(props.currentSlide, props.slides.length, direction)
+    emitEvents(followingSlide(props.currentSlide, props.slides.length, direction))
     return
   }
 
@@ -107,7 +104,6 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   const tl = gsap.timeline()
 
   const rightSlide = currSlide.getBoundingClientRect().right
-  // TODO: controllare width
   const widthSlide = currSlide.getBoundingClientRect().width
   const heightSlide = currSlide.getBoundingClientRect().height
 
@@ -167,7 +163,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
 
     tl.kill()
     window.removeEventListener('wheel', handleScroll)
-    emitEvents(followingSlide(direction))
+    emitEvents(followingSlide(props.currentSlide, props.slides.length, direction))
     isSliderInProgress.value = false
 
     // TODO: fix remove listener
@@ -175,23 +171,6 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
       window.addEventListener('wheel', handleScroll)
     }, 700)
   })
-}
-
-const followingSlide = (direction?: CarouselDirectionEnum): number => {
-  const isPrevious = direction === CarouselDirectionEnum.PREVIOUS
-  const lastSlide = props.slides.length - 1
-  const isFirstSlide = props.currentSlide === 0
-  const isLastSlide = props.currentSlide === lastSlide
-
-  if (isPrevious && isFirstSlide) return props.currentSlide
-
-  if (isPrevious) {
-    return props.currentSlide - 1
-  }
-
-  if (isLastSlide) return props.currentSlide
-
-  return props.currentSlide + 1
 }
 </script>
 
@@ -201,7 +180,7 @@ const followingSlide = (direction?: CarouselDirectionEnum): number => {
       <li
         v-for="(slide, index) in props.slides"
         :key="slide.id"
-        :class="getClassesSlide(index, currentSlide)"
+        :class="getClassesSlide(index, currentSlide, 'carousel__slide')"
         :ref="(_ref) => { slidesRef.push(_ref as Element) }"
       >
         <SlideVue :id="slide.id" :url="slide.url" />
@@ -219,9 +198,9 @@ const followingSlide = (direction?: CarouselDirectionEnum): number => {
     <div class="carousel__info">
       <TransitionGroup name="carousel__text-">
         <div
-          class="carousel__text"
           v-for="(slide, index) in props.slides"
           :key="slide.id"
+          :class="getClassesSlide(index, currentSlide, 'carousel__text')"
           v-show="index === currentSlide"
         >
           <div class="carousel__tag">{{ slide.category }}</div>
@@ -249,6 +228,7 @@ const followingSlide = (direction?: CarouselDirectionEnum): number => {
 </template>
 
 <style lang="scss" scoped>
+@import '../../assets/styles/animations';
 @import '../../assets/styles/breakpoints';
 @import '../../assets/styles/typography';
 @import '../../assets/styles/variables';
@@ -258,7 +238,7 @@ const followingSlide = (direction?: CarouselDirectionEnum): number => {
   width: 100%;
   overflow: hidden;
   display: grid;
-  grid-template-rows: $height-slide-small auto auto minmax(0, 1fr);
+  grid-template-rows: $height-slide-small auto $height-description-small minmax(0, 1fr);
   gap: $spacer-32;
 
   @include media($from: lg) {
@@ -345,24 +325,31 @@ const followingSlide = (direction?: CarouselDirectionEnum): number => {
   &__progress-item {
     &--selected {
       background-color: $celeste-vintage;
+      animation: scale-from-out 1s ease;
     }
   }
 
+  &__info {
+    position: relative;
+  }
+
   &__text {
+    position: absolute;
+    top: 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
 
-    // TODO: fix animation text
+    // TODO: manage direction
     &--enter-active,
-    &--leave-active {
-      transition: all 0.5s ease;
+    &--enter-from {
+      animation: slide-from-right 0.5s 0.25s ease;
     }
 
-    &--enter-from,
-    &--leave-to {
-      opacity: 0;
-      transform: translateX(30px);
+    &--leave-active,
+    &--leave-from {
+      animation: slide-to-left 0.5s ease;
     }
   }
 

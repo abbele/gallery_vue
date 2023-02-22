@@ -26,8 +26,8 @@ watchEffect(async () => {
     slides.value = imgsModel.imgsForCarousel().map((imgs, index) => ({
       id: imgs.id,
       url: imgs.url,
-      category: quotes()[index]?.category,
-      quote: quotes()[index]?.quote,
+      category: quotes()[index]?.category || 'CATEGORY',
+      quote: quotes()[index]?.quote || 'QUOTE',
     }))
     isLoaded.value = true
   })
