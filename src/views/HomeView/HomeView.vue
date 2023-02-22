@@ -9,12 +9,14 @@ import type { ISlide } from '@/components/Carousel/components/Slide/Slide.interf
 import { HomeViewService } from './HomeView.service'
 
 import { SLIDES_LENGTH } from './HomeView.constants'
+import router from '@/router'
 
 const route = useRoute()
 
 const isLoaded = ref<boolean>(false)
 const slides = ref<ISlide[]>([])
-const currentSlide = ref<number>(0)
+// TODO: add slides lenght value
+const currentSlide = ref<number>(+(route.params.id || 0))
 
 watchEffect(async () => {
   Promise.all([
@@ -26,15 +28,20 @@ watchEffect(async () => {
     slides.value = imgsModel.imgsForCarousel().map((imgs, index) => ({
       id: imgs.id,
       url: imgs.url,
-      category: quotes()[index]?.category,
-      quote: quotes()[index]?.quote,
+      category: quotes()[index]?.category || 'CATEGORY',
+      quote: quotes()[index]?.quote || 'QUOTE',
     }))
     isLoaded.value = true
   })
 })
 
+watchEffect(() => {
+  currentSlide.value = +(route.params.id || 0)
+})
+
 const handleChangeSlide = (followingSlide: number) => {
   currentSlide.value = followingSlide
+  router.push(`/${followingSlide}`)
 }
 </script>
 
