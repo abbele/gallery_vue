@@ -12,7 +12,7 @@ import SlideVue from './components/Slide/Slide.vue'
 
 import ArrowVue from '../icons/Arrow.vue'
 
-import { getClassesSlide, getClassesProgressItem, followingSlide } from './Carousel.utils'
+import { getClassesSlide, followingSlide } from './Carousel.utils'
 import { isMobile } from '../../utils'
 
 // TODO: non viene letta da VUE
@@ -191,7 +191,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
         <div
           v-for="(slide, index) in slides"
           :key="slide.id"
-          :class="getClassesProgressItem(index, currentSlide)"
+          :class="getClassesSlide(index, currentSlide, 'carousel__progress-item')"
         ></div>
       </div>
     </div>
@@ -323,9 +323,15 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
   }
 
   &__progress-item {
-    &--selected {
+    &--current {
       background-color: $celeste-vintage;
       animation: scale-from-out 1s ease;
+    }
+
+    &--previous,
+    &--next {
+      background-color: $dark;
+      transition: background-color 1s ease;
     }
   }
 
@@ -344,7 +350,7 @@ const handleChangeSlide = (direction: CarouselDirectionEnum) => {
     // TODO: manage direction
     &--enter-active,
     &--enter-from {
-      animation: slide-from-right 0.5s 0.25s ease;
+      animation: slide-from-right 0.5s ease;
     }
 
     &--leave-active,

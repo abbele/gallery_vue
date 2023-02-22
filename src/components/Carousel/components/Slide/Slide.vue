@@ -10,6 +10,7 @@ const props = defineProps<{
 }>()
 </script>
 
+<!-- TODO: add li, progress (slot), description inside -->
 <template>
   <article class="slide">
     <img :src="props.url" :alt="props.id" class="slide__img" />

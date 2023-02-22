@@ -13,11 +13,6 @@ export const getClassesSlide = (index: number, current: number, className: strin
   }
 }
 
-export const getClassesProgressItem = (index: number, current: number) => ({
-  'carousel__progress-item': true,
-  'carousel__progress-item--selected': index === current,
-})
-
 export const followingSlide = (
   currentSlide: number,
   lengthSlide: number,
