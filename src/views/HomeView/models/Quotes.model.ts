@@ -4,7 +4,7 @@ export class QuotesModel {
   private _quotes: IQuotesResponse[] = []
 
   constructor(response: IQuotesResponse[]) {
-    this._quotes = response
+    this._quotes = response || []
   }
 
   public quotesForCarousel = () =>

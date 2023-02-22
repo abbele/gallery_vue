@@ -17,8 +17,8 @@ export class ApiService {
       urlWithQuery.search = new URLSearchParams(params).toString()
     }
 
-    return fetch(urlWithQuery.href, { headers, method: 'GET' }).then(
-      (res: Response) => res.json(),
-    )
+    return fetch(urlWithQuery.href, { headers, method: 'GET' })
+      .then((res: Response) => res.json())
+      .catch(console.log)
   }
 }
